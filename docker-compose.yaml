@@ -7,7 +7,6 @@ services:
         VERSION: $NGINX_VERSION
       context: .
       dockerfile: ./docker/nginx/Dockerfile
-      target: dev
     volumes:
       - ./public:/app/public
       - ./assets/css:/app/public/css
@@ -23,7 +22,6 @@ services:
         VERSION: $PHP_VERSION
       context: .
       dockerfile: ./docker/php-fpm/Dockerfile
-      target: dev
     volumes:
       - ./:/app
     command: sh -c 'XDEBUG_MODE=off composer install --no-interaction --optimize-autoloader && php-fpm'
