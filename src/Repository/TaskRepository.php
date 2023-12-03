@@ -20,7 +20,18 @@ class TaskRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Task::class);
     }
+    public function findAllTasks(): array
+    {
+        $entityManager = $this->getEntityManager();
 
+        $query = $entityManager->createQuery(
+            'SELECT t
+            FROM App\Entity\Task t
+            ORDER BY t.createdAt DESC'
+        );
+
+        return $query->getResult();
+    }
 //    /**
 //     * @return Task[] Returns an array of Task objects
 //     */
