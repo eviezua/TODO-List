@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Register{% endblock %}
+
+{% block body %}
+    <style>
+        h1.text-center{
+            color: lightskyblue;
+            background-color: white;
+            text-shadow: -1px -1px 0 dodgerblue, 1px -1px 0 dodgerblue, -1px 1px 0 dodgerblue, 1px 1px 0 dodgerblue;
+        }
+        .mb-3{
+            color: mediumblue;
+        }
+    </style>
+    <div class="mb-3 row">
+    {{ form_errors(registrationForm) }}
+
+    {{ form_start(registrationForm) }}
+        <div class="row align-items-center" style="height: 75vh;">
+            <div class=" mx-auto col-10 col-md-8 col-lg-6">
+                <h1 class="text-center">Register</h1>
+                {{ form_row(registrationForm.email) }}
+                {{ form_row(registrationForm.plainPassword, {
+                    label: 'Password'
+                }) }}
+                {{ form_row(registrationForm.agreeTerms) }}
+                <div class="d-grid gap-2 col-6 mx-auto">
+                    <button type="submit" class="btn btn-outline-primary">Register</button>
+                </div>
+            </div>
+        </div>
+    {{ form_end(registrationForm) }}
+    </div>
+{% endblock %}

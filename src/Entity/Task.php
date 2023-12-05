@@ -5,7 +5,23 @@ namespace App\Entity;
 use App\Repository\TaskRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 
+#[ApiResource(description: 'Just tasks for TODO list :)', operations: [
+    new Get(),
+    new GetCollection(),
+    new Post(),
+    new Put(),
+    new Patch(),
+    new Delete(),
+    ])
+]
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 class Task
 {
