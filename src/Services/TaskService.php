@@ -25,9 +25,10 @@ class TaskService
         ?int $priority = null,
         ?string $search = null,
         ?string $createdAt = null,
+        ?string $completedAt = null,
         ?string $orderBy = null
     ) {
-        return $this->taskRepository->findTasksByFilters($userId, $status, $priority, $search, $createdAt, $orderBy);
+        return $this->taskRepository->findTasksByFilters($userId, $status, $priority, $search, $createdAt, $completedAt, $orderBy);
     }
     public function isTaskOwnedByUser(int $taskId, UserInterface $currentUser): bool
     {
