@@ -20,17 +20,54 @@ class TaskRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Task::class);
     }
-    public function findAllTasks(): array
+    public function findTasksByFilters(
+        int $userId,
+        ?string $status = null,
+        ?int $priority = null,
+        ?string $search = null,
+        ?string $createdAt = null,
+        ?string $completedAt = null,
+        ?string $orderBy = null)
     {
-        $entityManager = $this->getEntityManager();
+        $qb = $this->createQueryBuilder('t')
+            ->andWhere('t.owner = :userId')
+            ->setParameter('userId', $userId);
+        if ($status) {
+            $qb->andWhere('t.status = :status')
+                ->setParameter('status', $status);
+        }
+        if ($priority) {
+            $qb->andWhere('t.priority = :priority')
+                ->setParameter('priority', $priority);
+        }
+        if ($search) {
+            $qb->andWhere($qb->expr()->orX(
+                $qb->expr()->like('t.title', ':search'),
+                $qb->expr()->like('t.description', ':search')
+            ))
+                ->setParameter('search', '%' . $search . '%');
+        }
+        if ($createdAt) {
+            $qb->andWhere('t.createdAt >= :createdAt AND t.createdAt < :nextDay')
+                ->setParameter('createdAt', new \DateTime($createdAt))
+                ->setParameter('nextDay', new \DateTime($createdAt . ' +1 day'));
+        }
+        if ($completedAt) {
+            $qb->andWhere('t.completedAt >= :completedAt AND t.completedAt < :nextDay')
+                ->setParameter('completedAt', new \DateTime($completedAt))
+                ->setParameter('nextDay', new \DateTime($completedAt . ' +1 day'));
+        }
+        if ($orderBy) {
+            [$field, $direction] = explode(' ', $orderBy);
 
-        $query = $entityManager->createQuery(
-            'SELECT t
-            FROM App\Entity\Task t
-            ORDER BY t.createdAt DESC'
-        );
+            if ($direction === 'asc' || $direction === 'desc') {
+                $qb->orderBy('t.' . $field, $direction);
+            } else {
+                throw new \InvalidArgumentException('Invalid sorting direction. Use "asc" or "desc".');
+            }
+        }
 
-        return $query->getResult();
+        return $qb->getQuery()->getResult();
     }
 //    /**
 //     * @return Task[] Returns an array of Task objects

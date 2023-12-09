@@ -22,6 +22,7 @@ use ApiPlatform\Metadata\Put;
     new Delete(),
     ])
 ]
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 class Task
 {
@@ -47,6 +48,10 @@ class Task
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $completedAt = null;
+
+    #[ORM\ManyToOne(inversedBy: 'tasks')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $owner = null;
 
     public function getId(): ?int
     {
@@ -113,11 +118,10 @@ class Task
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    #[ORM\PrePersist]
+    public function setCreatedAt(): void
     {
-        $this->createdAt = $createdAt;
-
-        return $this;
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getCompletedAt(): ?\DateTimeImmutable
@@ -128,6 +132,18 @@ class Task
     public function setCompletedAt(?\DateTimeImmutable $completedAt): static
     {
         $this->completedAt = $completedAt;
+
+        return $this;
+    }
+
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): static
+    {
+        $this->owner = $owner;
 
         return $this;
     }
