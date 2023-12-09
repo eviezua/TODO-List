@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Status;
 use App\Entity\Task;
+use App\Entity\User;
+use App\Repository\UserRepository;
 use App\Services\TaskService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -32,22 +34,23 @@ class TaskController extends AbstractController
     {
         return $this->json($user);
     }*/
-    #[Route('user/{id}/tasks', name: 'task.show', methods: 'GET')]
-    public function getTasks(int $id, Request $request): JsonResponse
+    #[Route('user/{userId}/tasks', name: 'task.show', methods: 'GET')]
+    public function getTasks(int $userId, Request $request): JsonResponse
     {
-        $currentUser = $this->getUser();
+        $currentUser = $this->em->getRepository(User::class)->findOneById($userId);
+        if (!$currentUser) {
+            return $this->json([
+                'message' => 'Access denied. You are not the owner of this tasks.',
+            ]);
+        }
+
         $status = $request->query->get('status');
         $priority = $request->query->get('priority');
         $search = $request->query->get('search');
         $createdAt= $request->query->get('createdAt');
         $completedAt= $request->query->get('completedAt');
         $orderBy = $request->query->get('orderBy');
-        if ($currentUser->getId() !== $id) {
-            return $this->json([
-                'message' => 'Access denied. You are not the owner of this tasks.',
-            ]);
-        }
-        $tasks = $this->taskService->findTasksByFilters($id, $status, (int)$priority, $search, $createdAt, $completedAt, $orderBy);
+        $tasks = $this->taskService->findTasksByFilters($userId, $status, (int)$priority, $search, $createdAt, $completedAt, $orderBy);
         if (empty($tasks)) {
             return new JsonResponse(['error' => 'Tasks not found'], JsonResponse::HTTP_NOT_FOUND);
         }
