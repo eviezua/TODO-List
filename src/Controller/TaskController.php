@@ -56,13 +56,13 @@ class TaskController extends AbstractController
         }
         return $this->json(['tasks' => $tasks]);
     }
-    #[Route('user/{id}/tasks/create', name: 'task.create', methods: 'GET')]
-    public function createTasks(int $id, Request $request): JsonResponse
+    #[Route('user/{userId}/tasks/create', name: 'task.create', methods: 'GET')]
+    public function createTasks(int $userId, Request $request): JsonResponse
     {
-        $currentUser = $this->getUser();
-        if ($currentUser->getId() !== $id) {
+        $currentUser = $this->em->getRepository(User::class)->findOneById($userId);
+        if (!$currentUser) {
             return $this->json([
-                'message' => 'Access denied. You are not allowed to create tasks for this user.',
+                'message' => 'Access denied. You are not the owner of this tasks.',
             ]);
         }
         $title = $request->query->get('title');
@@ -70,7 +70,7 @@ class TaskController extends AbstractController
         $priority = $request->query->get('priority');
         $priority = (int)$priority;
         if ($priority > 5 || $priority < 1) {
-            return $this->json(['error' => 'Priority must be between 1 and 5.']);
+            return $this->json(['error' => 'Priority must be between 1 and 5.'], JsonResponse::HTTP_BAD_REQUEST);
         }
         if (!$title || !$priority) {
             return $this->json(['error' => 'Incomplete data. Please provide title, description, and priority.'], JsonResponse::HTTP_BAD_REQUEST);
