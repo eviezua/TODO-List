@@ -1,4 +1,4 @@
-version: '3'
+version: '3.4'
 
 services:
   nginx:
@@ -22,9 +22,15 @@ services:
         VERSION: $PHP_VERSION
       context: .
       dockerfile: ./docker/php-fpm/Dockerfile
+      target: dev
     volumes:
       - ./:/app
-    command: sh -c 'XDEBUG_MODE=off composer install --no-interaction --optimize-autoloader && php-fpm'
+    command: |
+        sh -c 'XDEBUG_MODE=off composer install --no-interaction --optimize-autoloader &&
+            XDEBUG_MODE=off bin/console lexik:jwt:generate-keypair --overwrite &&
+            setfacl -R -m u:www-data:rX -m u:"$(whoami)":rwX config/jwt &&
+            setfacl -dR -m u:www-data:rX -m u:"$(whoami)":rwX config/jwt &&
+            php-fpm'
     depends_on:
       - database
 

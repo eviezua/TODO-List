@@ -4,7 +4,7 @@ FROM php:${VERSION}-fpm-alpine AS dev
 
 RUN apk update && \
     apk add --no-cache --virtual dev-deps git autoconf gcc g++ make && \
-    apk add --no-cache zlib-dev libzip-dev linux-headers postgresql-dev libxslt-dev pcre-dev rabbitmq-c-dev
+    apk add --no-cache zlib-dev libzip-dev linux-headers openssl acl postgresql-dev libxslt-dev pcre-dev rabbitmq-c-dev
 
 RUN pecl install xdebug && \
     docker-php-ext-enable xdebug && \
