@@ -48,6 +48,109 @@ class TaskTest extends ApiTestCase
         );
     }
 
+    public function testCreateTaskWithoutTitle()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        $userId = $user->getId();
+        $token = $this->getToken('test@example.com', 'password');
+
+        static::createClient()->request('POST', '/api/tasks', [
+            'auth_bearer' => $token,
+            'json' => [
+                "owner" => "/api/users/{$userId}",
+                'status' => Status::ToDo,
+                'priority' => 1,
+                'description' => 'test',
+                'createdAt' => "2023-12-10"
+            ],
+            'headers' => [
+                'Content-Type' => 'application/ld+json',
+            ]
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+        $this->assertJsonContains(
+            [
+                'hydra:title' => 'An error occurred',
+                'hydra:description' => 'title: This value should not be blank.',
+                'title' => 'An error occurred',
+            ]
+        );
+    }
+
+    /**
+     * @dataProvider invalidPriority
+     */
+    public function testCreateTaskWithInvalidPriority($priority)
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        $userId = $user->getId();
+        $token = $this->getToken('test@example.com', 'password');
+
+        static::createClient()->request('POST', '/api/tasks', [
+            'auth_bearer' => $token,
+            'json' => [
+                "owner" => "/api/users/{$userId}",
+                'status' => Status::ToDo,
+                'title' => 'Test Task',
+                'priority' => $priority,
+                'description' => 'test',
+                'createdAt' => "2023-12-10"
+            ],
+            'headers' => [
+                'Content-Type' => 'application/ld+json',
+            ]
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+        $this->assertJsonContains(
+            [
+                'hydra:title' => 'An error occurred',
+                'hydra:description' => 'priority: This value should be between 1 and 5.',
+                'title' => 'An error occurred',
+            ]
+        );
+    }
+
+    public function invalidPriority(): array
+    {
+        return [
+            [9,],
+            [0,],
+            [-1,],
+        ];
+    }
+
+    public function testCreateTaskWithoutPriority()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        $userId = $user->getId();
+        $token = $this->getToken('test@example.com', 'password');
+
+        static::createClient()->request('POST', '/api/tasks', [
+            'auth_bearer' => $token,
+            'json' => [
+                "owner" => "/api/users/{$userId}",
+                'status' => Status::ToDo,
+                'title' => 'Test Task',
+                'description' => 'test',
+                'createdAt' => "2023-12-10"
+            ],
+            'headers' => [
+                'Content-Type' => 'application/ld+json',
+            ]
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+        $this->assertJsonContains(
+            [
+                'hydra:title' => 'An error occurred',
+                'hydra:description' => 'priority: This value should not be blank.',
+                'title' => 'An error occurred',
+            ]
+        );
+    }
+
     public function testGetCollection()
     {
         $user = $this->createUser('test@example.com', 'password');

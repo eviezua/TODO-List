@@ -12,6 +12,7 @@ use ApiPlatform\Metadata\Put;
 use App\Repository\TaskRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ApiResource(description: 'Just tasks for TODO list :)', operations: [
     new Get(),
@@ -35,9 +36,12 @@ class Task
     private ?Status $status = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank]
+    #[Assert\Range(min: 1, max: 5)]
     private ?int $priority = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
