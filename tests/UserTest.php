@@ -91,7 +91,7 @@ class UserTest extends ApiTestCase
 
         $token = $this->getToken('test@example.com', 'password');
 
-        $response = static::createClient()->request('GET', '/api/users', ['auth_bearer' => $token]);
+        static::createClient()->request('GET', '/api/users', ['auth_bearer' => $token]);
         $this->assertResponseIsSuccessful();
 
         $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
@@ -136,7 +136,7 @@ class UserTest extends ApiTestCase
         ]);
     }
 
-    public  function testUpdateUser()
+    public function testUpdateUser()
     {
         $client = static::createClient();
         $user1 = $this->createUser('test@example.com', 'password');
@@ -151,14 +151,14 @@ class UserTest extends ApiTestCase
         $token = $this->getToken('test@example.com', 'password');
 
         $response = static::createClient()->request('PATCH', "/api/users/{$userId}", [
-            'auth_bearer' => $token,
-            'json' => [
-                'email' => 'test2@example.com',
-             ],
-            'headers' => [
-                'Content-Type' => 'application/merge-patch+json',
-            ]
+                'auth_bearer' => $token,
+                'json' => [
+                    'email' => 'test2@example.com',
+                ],
+                'headers' => [
+                    'Content-Type' => 'application/merge-patch+json',
                 ]
+            ]
         );
         $this->assertResponseIsSuccessful();
         $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
@@ -168,7 +168,9 @@ class UserTest extends ApiTestCase
             'userIdentifier' => 'test2@example.com',
         ]);
         $this->assertNull(
-            static::getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(['email' => 'test1@example.com'])
+            static::getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(
+                ['email' => 'test1@example.com']
+            )
         );
     }
 
@@ -181,15 +183,15 @@ class UserTest extends ApiTestCase
         $userId = $user->getId();
 
         $client->request('DELETE', "/api/users/{$userId}");
+
         $this->assertResponseStatusCodeSame(401);
 
         $token = $this->getToken('test@example.com', 'password');
         $client->request('DELETE', "/api/users/{$userId}", ['auth_bearer' => $token]);
+
         $this->assertResponseIsSuccessful();
-
-
-
     }
+
     protected function createUser(string $email, string $password): User
     {
         $container = self::getContainer();
