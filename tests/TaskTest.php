@@ -4,6 +4,7 @@ namespace App\Tests;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use App\Entity\Status;
+use App\Entity\Task;
 use App\Entity\User;
 use App\Factory\TaskFactory;
 use Zenstruck\Foundry\Test\ResetDatabase;
@@ -14,24 +15,8 @@ class TaskTest extends ApiTestCase
 
     public function testCreateTask()
     {
-        $client = self::createClient();
-
         $user = $this->createUser('test@example.com', 'password');
         $userId = $user->getId();
-
-        $client->request('POST', '/api/tasks', [
-            'json' => [
-                'priority' => 1,
-                'title' => 'Test Task',
-                'description' => 'test'
-            ],
-            'headers' => [
-                'Content-Type' => 'application/ld+json',
-            ]
-        ]);
-
-        $this->assertResponseStatusCodeSame(401);
-
         $token = $this->getToken('test@example.com', 'password');
 
         static::createClient()->request('POST', '/api/tasks', [
@@ -66,12 +51,7 @@ class TaskTest extends ApiTestCase
     public function testGetCollection()
     {
         $user = $this->createUser('test@example.com', 'password');
-
         TaskFactory::createMany(100, ['owner' => $user]);
-
-        static::createClient()->request('GET', '/api/tasks');
-        $this->assertResponseStatusCodeSame(401);
-
         $token = $this->getToken('test@example.com', 'password');
 
         static::createClient()->request('GET', '/api/tasks', ['auth_bearer' => $token]);
@@ -95,13 +75,8 @@ class TaskTest extends ApiTestCase
     public function testGetTask()
     {
         $user = $this->createUser('test@example.com', 'password');
-
         $task = TaskFactory::createOne(['owner' => $user]);
         $taskId = $task->getId();
-
-        static::createClient()->request('GET', "/api/tasks/$taskId");
-        $this->assertResponseStatusCodeSame(401);
-
         $token = $this->getToken('test@example.com', 'password');
 
         static::createClient()->request('GET', "/api/tasks/$taskId", ['auth_bearer' => $token]);
@@ -117,31 +92,26 @@ class TaskTest extends ApiTestCase
     public function testDeleteTask()
     {
         $user = $this->createUser('test@example.com', 'password');
-
         $task = TaskFactory::createOne(['owner' => $user]);
         $taskId = $task->getId();
-
-        static::createClient()->request('DELETE', "/api/tasks/$taskId");
-        $this->assertResponseStatusCodeSame(401);
-
         $token = $this->getToken('test@example.com', 'password');
 
         static::createClient()->request('DELETE', "/api/tasks/$taskId", ['auth_bearer' => $token]);
 
         $this->assertResponseIsSuccessful();
         $this->assertResponseStatusCodeSame(204);
+        $this->assertNull(
+            static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+                ['id' => $taskId]
+            )
+        );
     }
 
     public function testUpdateTask()
     {
         $user = $this->createUser('test@example.com', 'password');
-
         $task = TaskFactory::createOne(['owner' => $user]);
         $taskId = $task->getId();
-
-        static::createClient()->request('PATCH', "/api/tasks/$taskId");
-        $this->assertResponseStatusCodeSame(401);
-
         $token = $this->getToken('test@example.com', 'password');
 
         static::createClient()->request('PATCH', "/api/tasks/$taskId", [
@@ -162,6 +132,28 @@ class TaskTest extends ApiTestCase
             '@type' => 'Task',
             'status' => 'Done'
         ]);
+    }
+
+    /**
+     * @dataProvider urlProvider
+     */
+    public function testUnauthorizedAccess($method, $url): void
+    {
+        static::createClient()->request($method, $url);
+
+        $this->assertResponseStatusCodeSame(401);
+    }
+
+    public function urlProvider(): array
+    {
+        return [
+            ['GET', '/api/tasks',],
+            ['POST', '/api/tasks',],
+            ['GET', "/api/tasks/1",],
+            ['PUT', "/api/tasks/1",],
+            ['PATCH', "/api/tasks/1",],
+            ['DELETE', '/api/tasks/1',],
+        ];
     }
 
     protected function createUser(string $email, string $password): User
