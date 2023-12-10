@@ -18,13 +18,20 @@ class TaskControllerTest extends ApiTestCase
 
     public function testGetTaskList(): void
     {
-        TaskFactory::createMany(2);
+        $user = $this->createUser('test@example.com', 'password');
+
+        TaskFactory::createMany(
+            2,
+            ['owner' => $user]
+        );
 
         $task = static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy([]);
 
         $userId = $task->getOwner()->getId();
 
-        $response = static::createClient()->request('GET', "/user/{$userId}/tasks");
+        $token = $this->getToken('test@example.com', 'password');
+
+        $response = static::createClient()->request('GET', "/user/{$userId}/tasks", ['auth_bearer' => $token]);
 
         $this->assertResponseIsSuccessful();
         $this->assertResponseHeaderSame('content-type', 'application/json');
@@ -33,18 +40,51 @@ class TaskControllerTest extends ApiTestCase
         $this->assertArrayHasKey('tasks', $responseData);
     }
 
+    protected function createUser(string $email, string $password): User
+    {
+        $container = self::getContainer();
+
+        $user = new User();
+        $user->setEmail($email);
+        $user->setPassword(
+            $container->get('security.user_password_hasher')->hashPassword($user, $password)
+        );
+
+        $manager = $container->get('doctrine')->getManager();
+        $manager->persist($user);
+        $manager->flush();
+
+        return $user;
+    }
+
+    protected function getToken(string $email, string $password): string
+    {
+        $response = static::createClient()->request('POST', '/auth', [
+            'headers' => ['Content-Type' => 'application/json'],
+            'json' => [
+                'email' => $email,
+                'password' => $password,
+            ],
+        ]);
+
+        return $response->toArray()['token'];
+    }
+
     /**
      * @dataProvider invalidTaskProvider
      */
     public function testCreateInvalidTask($params)
     {
-        UserFactory::createOne();
-
-        $user = static::getContainer()->get('doctrine')->getRepository(User::class)->findOneBy([]);
+        $user = $this->createUser('test@example.com', 'password');
 
         $userId = $user->getId();
+        $token = $this->getToken('test@example.com', 'password');
 
-        $response = static::createClient()->request('GET', "/user/{$userId}/tasks/create?" . $params);
+        $response = static::createClient()->request(
+            'GET',
+            "/user/{$userId}/tasks/create?" . $params,
+            ['auth_bearer' => $token]
+        );
 
         $this->assertEquals(400, $response->getStatusCode());
 
@@ -73,13 +113,19 @@ class TaskControllerTest extends ApiTestCase
 
     public function testCreateTask()
     {
-        UserFactory::createOne();
-
-        $user = static::getContainer()->get('doctrine')->getRepository(User::class)->findOneBy([]);
+        $user = $this->createUser('test@example.com', 'password');
 
         $userId = $user->getId();
 
-        $response = static::createClient()->request('GET', "/user/{$userId}/tasks/create?title=TestCreateTask&description=test&priority=1");
+        $token = $this->getToken('test@example.com', 'password');
+
+        $response = static::createClient()->request(
+            'GET',
+            "/user/{$userId}/tasks/create?title=TestCreateTask&description=test&priority=1",
+            [
+                'auth_bearer' => $token
+            ]
+        );
 
         $this->assertResponseIsSuccessful();
 
