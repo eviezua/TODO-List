@@ -6,7 +6,7 @@ use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use App\Entity\User;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
-class AuthenticationTest extends ApiTestCase
+class UserTest extends ApiTestCase
 {
     use ResetDatabase;
 
