@@ -46,4 +46,34 @@ class AuthenticationTest extends ApiTestCase
         $client->request('GET', '/api/users', ['auth_bearer' => $json['token']]);
         $this->assertResponseIsSuccessful();
     }
+
+    public function testRegistration(): void
+    {
+        $client = self::createClient();
+
+        $response = $client->request('POST', '/api/users', [
+            'json' => [
+                'email' => 'test@example.com',
+                'password' => 'password',
+            ],
+            'headers' => [
+                'Content-Type' => 'application/ld+json',
+            ]
+        ]);
+
+        $this->assertResponseIsSuccessful();
+
+        $this->assertJsonContains(
+            [
+                '@context' => '/api/contexts/User',
+                '@type' => 'User',
+                'email' => 'test@example.com',
+            ]
+        );
+
+        $userData = $response->toArray();
+
+        $this->assertMatchesRegularExpression('~^/api/users/\d+$~', $userData['@id']);
+        $this->assertNotEmpty($userData['password']);
+    }
 }
