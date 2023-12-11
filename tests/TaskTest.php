@@ -13,6 +13,9 @@ class TaskTest extends ApiTestCase
 {
     use ResetDatabase;
 
+    /**
+     * @group my
+     */
     public function testCreateTask()
     {
         $user = $this->createUser('test@example.com', 'password');
@@ -27,7 +30,6 @@ class TaskTest extends ApiTestCase
                 'priority' => 1,
                 'title' => 'Test Task',
                 'description' => 'test',
-                'createdAt' => "2023-12-10"
             ],
             'headers' => [
                 'Content-Type' => 'application/ld+json',
@@ -61,7 +63,6 @@ class TaskTest extends ApiTestCase
                 'status' => Status::ToDo,
                 'priority' => 1,
                 'description' => 'test',
-                'createdAt' => "2023-12-10"
             ],
             'headers' => [
                 'Content-Type' => 'application/ld+json',
@@ -95,7 +96,6 @@ class TaskTest extends ApiTestCase
                 'title' => 'Test Task',
                 'priority' => $priority,
                 'description' => 'test',
-                'createdAt' => "2023-12-10"
             ],
             'headers' => [
                 'Content-Type' => 'application/ld+json',
@@ -134,7 +134,6 @@ class TaskTest extends ApiTestCase
                 'status' => Status::ToDo,
                 'title' => 'Test Task',
                 'description' => 'test',
-                'createdAt' => "2023-12-10"
             ],
             'headers' => [
                 'Content-Type' => 'application/ld+json',
