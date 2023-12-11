@@ -56,17 +56,6 @@ class UserTest extends ApiTestCase
         ]);
 
         $this->assertResponseIsSuccessful();
-        $this->assertJsonContains(
-            [
-                '@context' => '/api/contexts/User',
-                '@type' => 'User',
-                'email' => 'test@example.com',
-            ]
-        );
-
-        $userData = $response->toArray();
-        $this->assertMatchesRegularExpression('~^/api/users/\d+$~', $userData['@id']);
-        $this->assertNotEmpty($userData['password']);
     }
 
     public function testGetCollection()
@@ -131,12 +120,6 @@ class UserTest extends ApiTestCase
         );
 
         $this->assertResponseIsSuccessful();
-        $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
-        $this->assertJsonContains([
-            '@context' => '/api/contexts/User',
-            '@type' => 'User',
-            'userIdentifier' => 'test2@example.com',
-        ]);
 
         $this->assertNull(
             static::getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(

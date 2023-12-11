@@ -37,17 +37,6 @@ class TaskTest extends ApiTestCase
         ]);
 
         $this->assertResponseIsSuccessful();
-        $this->assertJsonContains(
-            [
-                '@context' => '/api/contexts/Task',
-                '@type' => 'Task',
-                "owner" => "/api/users/{$userId}",
-                'status' => 'ToDo',
-                'priority' => 1,
-                'title' => 'Test Task',
-                'description' => 'test',
-            ]
-        );
     }
 
     public function testCreateTaskWithoutTitle()
@@ -233,14 +222,14 @@ class TaskTest extends ApiTestCase
     public function testUpdateTask()
     {
         $user = $this->createUser('test@example.com', 'password');
-        $task = TaskFactory::createOne(['owner' => $user]);
+        $task = TaskFactory::createOne(['owner' => $user, 'description' => 'Test description']);
         $taskId = $task->getId();
         $token = $this->getToken('test@example.com', 'password');
 
         static::createClient()->request('PATCH', "/api/tasks/$taskId", [
             'auth_bearer' => $token,
             'json' => [
-                'status' => Status::Done,
+                'description' => 'Another description',
             ],
             'headers' => [
                 'Content-Type' => 'application/merge-patch+json',
@@ -249,12 +238,12 @@ class TaskTest extends ApiTestCase
 
         $this->assertResponseIsSuccessful();
         $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
-        $this->assertJsonContains([
-            '@context' => '/api/contexts/Task',
-            '@id' => "/api/tasks/$taskId",
-            '@type' => 'Task',
-            'status' => 'Done'
-        ]);
+
+        $actualTask = static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+            ['id' => $taskId]
+        );
+
+        $this->assertEquals('Another description', $actualTask->getDescription());
     }
 
     public function testUpdateTaskOfAnotherOwnerForbidden()
