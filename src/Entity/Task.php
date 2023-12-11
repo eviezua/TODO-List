@@ -21,10 +21,10 @@ use Symfony\Component\Validator\Constraints as Assert;
     new Put(),
     new Patch(
         inputFormats: ['json' => ['application/merge-patch+json']],
-        security: 'is_granted("ROLE_USER") and object.getOwner() == user',
+        security: 'is_granted("ROLE_TASK_EDIT", object)',
     ),
     new Delete(
-        security: 'is_granted("ROLE_USER") and object.getOwner() == user',
+        security: 'is_granted("ROLE_TASK_DELETE", object)',
     ),
 ])
 ]
