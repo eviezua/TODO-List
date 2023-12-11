@@ -19,8 +19,13 @@ use Symfony\Component\Validator\Constraints as Assert;
     new GetCollection(),
     new Post(),
     new Put(),
-    new Patch(inputFormats: ['json' => ['application/merge-patch+json']]),
-    new Delete(),
+    new Patch(
+        inputFormats: ['json' => ['application/merge-patch+json']],
+        security: 'is_granted("ROLE_USER") and object.getOwner() == user',
+    ),
+    new Delete(
+        security: 'is_granted("ROLE_USER") and object.getOwner() == user',
+    ),
 ])
 ]
 #[ORM\HasLifecycleCallbacks]
@@ -61,7 +66,7 @@ class Task
     {
         return $this->id;
     }
-    
+
     public function getStatus(): ?Status
     {
         return $this->status;

@@ -209,6 +209,27 @@ class TaskTest extends ApiTestCase
         );
     }
 
+    public function testDeleteTaskOfAnotherOwnerForbidden()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        $task = TaskFactory::createOne(['owner' => $user]);
+        $user1 = $this->createUser('test1@example.com', 'password');
+
+        $taskId = $task->getId();
+        $token = $this->getToken('test1@example.com', 'password');
+
+        static::createClient()->request('DELETE', "/api/tasks/$taskId", ['auth_bearer' => $token]);
+
+        $this->assertResponseStatusCodeSame(403);
+
+        $this->assertInstanceOf(
+            Task::class,
+            static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+                ['id' => $taskId]
+            )
+        );
+    }
+
     public function testUpdateTask()
     {
         $user = $this->createUser('test@example.com', 'password');
@@ -234,6 +255,34 @@ class TaskTest extends ApiTestCase
             '@type' => 'Task',
             'status' => 'Done'
         ]);
+    }
+
+    public function testUpdateTaskOfAnotherOwnerForbidden()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        $task = TaskFactory::createOne(['owner' => $user, 'description' => 'Test description']);
+        $user1 = $this->createUser('test1@example.com', 'password');
+
+        $taskId = $task->getId();
+        $token = $this->getToken('test1@example.com', 'password');
+
+        static::createClient()->request('PATCH', "/api/tasks/$taskId", [
+            'auth_bearer' => $token,
+            'json' => [
+                'description' => 'Another description',
+            ],
+            'headers' => [
+                'Content-Type' => 'application/merge-patch+json',
+            ]
+        ]);
+
+        $this->assertResponseStatusCodeSame(403);
+
+        $actualTask = static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+            ['id' => $taskId]
+        );
+
+        $this->assertEquals('Test description', $actualTask->getDescription());
     }
 
     /**
