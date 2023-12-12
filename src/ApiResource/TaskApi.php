@@ -41,13 +41,13 @@ use Symfony\Component\Validator\Constraints as Assert;
     processor: EntityClassDtoStateProcessor::class,
     stateOptions: new Options(entityClass: Task::class)),
 ]
-#[ApiFilter(OrderFilter::class, properties: ['priority'], arguments: ['orderParameterName' => 'order'])]
 class TaskApi
 {
     #[ApiProperty(readable: false, writable: false, identifier: true)]
     public ?int $id = null;
 
     #[ApiFilter(NumericFilter::class, strategy: 'exact')]
+    #[ApiFilter(OrderFilter::class)]
     #[Assert\NotBlank]
     #[Assert\Range(min: 1, max: 5)]
     public ?int $priority = null;
@@ -64,4 +64,11 @@ class TaskApi
     public ?Status $status = null;
 
     public ?UserApi $owner = null;
+
+    #[ApiProperty(readable: true, writable: false)]
+    public ?\DateTimeImmutable $createdAt = null;
+
+    #[ApiProperty(readable: true, writable: false)]
+    #[ApiFilter(OrderFilter::class)]
+    public ?\DateTimeImmutable $completedAt = null;
 }

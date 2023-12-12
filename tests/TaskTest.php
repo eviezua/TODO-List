@@ -326,6 +326,36 @@ class TaskTest extends ApiTestCase
         $this->assertEquals(1, $collection[1]['priority']);
     }
 
+    public function testGetCollectionSortByCompletedAt()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        TaskFactory::createMany(
+            1,
+            ['owner' => $user, 'completedAt' => new \DateTimeImmutable('- 1 day'), 'title' => 'task1']
+        );
+        TaskFactory::createMany(1, ['owner' => $user, 'completedAt' => new \DateTimeImmutable(), 'title' => 'task2']);
+        $token = $this->getToken('test@example.com', 'password');
+
+        $response = static::createClient()->request('GET', '/api/tasks?order[priority]=desc', ['auth_bearer' => $token]
+        );
+
+        $this->assertResponseIsSuccessful();
+        $this->assertJsonContains([
+            '@context' => '/api/contexts/Task',
+            '@id' => '/api/tasks',
+            '@type' => 'hydra:Collection',
+            'hydra:totalItems' => 2,
+            'hydra:view' => [
+                '@id' => '/api/tasks?order%5Bpriority%5D=desc',
+                '@type' => 'hydra:PartialCollectionView',
+            ]
+        ]);
+
+        $collection = json_decode($response->getContent(), true)['hydra:member'];
+        $this->assertEquals('task2', $collection[0]['title']);
+        $this->assertEquals('task1', $collection[1]['title']);
+    }
+
     public function testGetTask()
     {
         $user = $this->createUser('test@example.com', 'password');
