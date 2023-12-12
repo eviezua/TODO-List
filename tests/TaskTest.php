@@ -291,6 +291,33 @@ class TaskTest extends ApiTestCase
         $this->assertEquals('Test description', $actualTask->getDescription());
     }
 
+    public function testCompleteTask()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        $task = TaskFactory::createOne(['owner' => $user, 'status' => Status::ToDo]);
+        $taskId = $task->getId();
+        $token = $this->getToken('test@example.com', 'password');
+
+        static::createClient()->request('PATCH', "/api/tasks/$taskId", [
+            'auth_bearer' => $token,
+            'json' => [
+                'status' => Status::Done
+            ],
+            'headers' => [
+                'Content-Type' => 'application/merge-patch+json',
+            ]
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
+
+        $actualTask = static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+            ['id' => $taskId]
+        );
+
+        $this->assertEquals(Status::Done, $actualTask->getStatus());
+    }
+
     /**
      * @dataProvider urlProvider
      */
