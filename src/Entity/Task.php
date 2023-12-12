@@ -42,6 +42,9 @@ class Task
     #[ORM\JoinColumn(nullable: false)]
     private ?User $owner = null;
 
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    private ?self $parent = null;
+
     public function __construct(?DateTimeImmutable $createdAt = null)
     {
         if ($createdAt instanceof DateTimeImmutable) {
@@ -129,6 +132,18 @@ class Task
     public function setOwner(?User $owner): static
     {
         $this->owner = $owner;
+
+        return $this;
+    }
+
+    public function getParent(): ?self
+    {
+        return $this->parent;
+    }
+
+    public function setParent(?self $parent): static
+    {
+        $this->parent = $parent;
 
         return $this;
     }
