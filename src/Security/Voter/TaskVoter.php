@@ -3,6 +3,7 @@
 namespace App\Security\Voter;
 
 use App\ApiResource\TaskApi;
+use App\Entity\Status;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
@@ -35,12 +36,25 @@ class TaskVoter extends Voter
 
         switch ($attribute) {
             case self::EDIT:
+                if (!$this->security->isGranted('ROLE_USER')) {
+                    return false;
+                }
+
+                if ($user->getId() === $subject->owner->id) {
+                    return true;
+                }
+                break;
+
             case self::DELETE:
                 if (!$this->security->isGranted('ROLE_USER')) {
                     return false;
                 }
 
-                if ($subject->owner->id === $user->getId()) {
+                if (Status::Done === $subject->status) {
+                    return false;
+                }
+
+                if ($user->getId() === $subject->owner->id) {
                     return true;
                 }
                 break;

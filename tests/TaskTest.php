@@ -180,7 +180,7 @@ class TaskTest extends ApiTestCase
     public function testDeleteTask()
     {
         $user = $this->createUser('test@example.com', 'password');
-        $task = TaskFactory::createOne(['owner' => $user]);
+        $task = TaskFactory::createOne(['owner' => $user, 'status' => Status::ToDo]);
         $taskId = $task->getId();
         $token = $this->getToken('test@example.com', 'password');
 
@@ -198,11 +198,31 @@ class TaskTest extends ApiTestCase
     public function testDeleteTaskOfAnotherOwnerForbidden()
     {
         $user = $this->createUser('test@example.com', 'password');
-        $task = TaskFactory::createOne(['owner' => $user]);
+        $task = TaskFactory::createOne(['owner' => $user, 'status' => Status::ToDo]);
         $user1 = $this->createUser('test1@example.com', 'password');
 
         $taskId = $task->getId();
         $token = $this->getToken('test1@example.com', 'password');
+
+        static::createClient()->request('DELETE', "/api/tasks/$taskId", ['auth_bearer' => $token]);
+
+        $this->assertResponseStatusCodeSame(403);
+
+        $this->assertInstanceOf(
+            Task::class,
+            static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+                ['id' => $taskId]
+            )
+        );
+    }
+
+    public function testDeleteCompletedTaskForbidden()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        $task = TaskFactory::createOne(['owner' => $user, 'status' => Status::Done]);
+
+        $taskId = $task->getId();
+        $token = $this->getToken('test@example.com', 'password');
 
         static::createClient()->request('DELETE', "/api/tasks/$taskId", ['auth_bearer' => $token]);
 
