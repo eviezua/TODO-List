@@ -30,7 +30,8 @@
         "symfony/serializer": "6.3.*",
         "symfony/twig-bundle": "6.3.*",
         "symfony/validator": "6.3.*",
-        "symfony/yaml": "6.3.*"
+        "symfony/yaml": "6.3.*",
+        "symfonycasts/micro-mapper": "^0.1.4"
     },
     "config": {
         "allow-plugins": {
