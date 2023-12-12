@@ -336,7 +336,9 @@ class TaskTest extends ApiTestCase
         TaskFactory::createMany(1, ['owner' => $user, 'completedAt' => new \DateTimeImmutable(), 'title' => 'task2']);
         $token = $this->getToken('test@example.com', 'password');
 
-        $response = static::createClient()->request('GET', '/api/tasks?order[priority]=desc', ['auth_bearer' => $token]
+        $response = static::createClient()->request(
+            'GET', '/api/tasks?order[completedAt]=desc',
+            ['auth_bearer' => $token]
         );
 
         $this->assertResponseIsSuccessful();
@@ -346,7 +348,41 @@ class TaskTest extends ApiTestCase
             '@type' => 'hydra:Collection',
             'hydra:totalItems' => 2,
             'hydra:view' => [
-                '@id' => '/api/tasks?order%5Bpriority%5D=desc',
+                '@id' => '/api/tasks?order%5BcompletedAt%5D=desc',
+                '@type' => 'hydra:PartialCollectionView',
+            ]
+        ]);
+
+        $collection = json_decode($response->getContent(), true)['hydra:member'];
+        $this->assertEquals('task2', $collection[0]['title']);
+        $this->assertEquals('task1', $collection[1]['title']);
+    }
+
+    public function testGetCollectionSortByCreatedAt()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        TaskFactory::new()->createOne([
+            'createdAt' => new \DateTimeImmutable('-1 day'),
+            'owner' => $user,
+            'title' => 'task1'
+        ]);
+        TaskFactory::new()->createOne([
+            'owner' => $user,
+            'title' => 'task2'
+        ]);
+        $token = $this->getToken('test@example.com', 'password');
+
+        $response = static::createClient()->request('GET', '/api/tasks?order[createdAt]=desc', ['auth_bearer' => $token]
+        );
+
+        $this->assertResponseIsSuccessful();
+        $this->assertJsonContains([
+            '@context' => '/api/contexts/Task',
+            '@id' => '/api/tasks',
+            '@type' => 'hydra:Collection',
+            'hydra:totalItems' => 2,
+            'hydra:view' => [
+                '@id' => '/api/tasks?order%5BcreatedAt%5D=desc',
                 '@type' => 'hydra:PartialCollectionView',
             ]
         ]);

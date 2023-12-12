@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\TaskRepository;
+use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -40,6 +41,15 @@ class Task
     #[ORM\ManyToOne(inversedBy: 'tasks')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $owner = null;
+
+    public function __construct(?DateTimeImmutable $createdAt = null)
+    {
+        if ($createdAt instanceof DateTimeImmutable) {
+            $this->createdAt = $createdAt;
+        } else {
+            $this->createdAt = new DateTimeImmutable();
+        }
+    }
 
     public function getId(): ?int
     {
@@ -97,12 +107,6 @@ class Task
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
-    }
-
-    #[ORM\PrePersist]
-    public function setCreatedAt(): void
-    {
-        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getCompletedAt(): ?\DateTimeImmutable
