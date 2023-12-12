@@ -195,7 +195,7 @@ class TaskTest extends ApiTestCase
         TaskFactory::createMany(10, ['owner' => $user, 'status' => Status::Done]);
         $token = $this->getToken('test@example.com', 'password');
 
-        static::createClient()->request('GET', '/api/tasks?status=ToDo', ['auth_bearer' => $token]);
+        static::createClient()->request('GET', '/api/tasks?status=todo', ['auth_bearer' => $token]);
 
         $this->assertResponseIsSuccessful();
         $this->assertJsonContains([
@@ -204,11 +204,11 @@ class TaskTest extends ApiTestCase
             '@type' => 'hydra:Collection',
             'hydra:totalItems' => 100,
             'hydra:view' => [
-                '@id' => '/api/tasks?status=ToDo&page=1',
+                '@id' => '/api/tasks?status=todo&page=1',
                 '@type' => 'hydra:PartialCollectionView',
-                'hydra:first' => '/api/tasks?status=ToDo&page=1',
-                'hydra:last' => '/api/tasks?status=ToDo&page=4',
-                'hydra:next' => '/api/tasks?status=ToDo&page=2',
+                'hydra:first' => '/api/tasks?status=todo&page=1',
+                'hydra:last' => '/api/tasks?status=todo&page=4',
+                'hydra:next' => '/api/tasks?status=todo&page=2',
             ],
         ]);
     }

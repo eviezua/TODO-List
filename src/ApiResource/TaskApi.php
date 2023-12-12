@@ -57,7 +57,7 @@ class TaskApi
     #[ApiFilter(SearchFilter::class, strategy: 'ipartial')]
     public ?string $description = null;
 
-    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
+    #[ApiFilter(SearchFilter::class, strategy: 'iexact')]
     #[Assert\Valid]
     public ?Status $status = null;
 
