@@ -2,6 +2,7 @@
 
 namespace App\ApiResource;
 
+use ApiPlatform\Doctrine\Orm\Filter\NumericFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Doctrine\Orm\State\Options;
 use ApiPlatform\Metadata\ApiFilter;
@@ -46,6 +47,7 @@ class TaskApi
 
     #[Assert\NotBlank]
     #[Assert\Range(min: 1, max: 5)]
+    #[ApiFilter(NumericFilter::class, strategy: 'exact')]
     public ?int $priority = null;
 
     #[Assert\NotBlank]

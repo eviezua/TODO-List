@@ -213,6 +213,28 @@ class TaskTest extends ApiTestCase
         ]);
     }
 
+    public function testGetCollectionFilterByPriority()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        TaskFactory::createMany(100, ['owner' => $user, 'priority' => 5]);
+        TaskFactory::createMany(10, ['owner' => $user, 'priority' => 1]);
+        $token = $this->getToken('test@example.com', 'password');
+
+        static::createClient()->request('GET', '/api/tasks?priority=1', ['auth_bearer' => $token]);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertJsonContains([
+            '@context' => '/api/contexts/Task',
+            '@id' => '/api/tasks',
+            '@type' => 'hydra:Collection',
+            'hydra:totalItems' => 10,
+            'hydra:view' => [
+                '@id' => '/api/tasks?priority=1',
+                '@type' => 'hydra:PartialCollectionView',
+            ],
+        ]);
+    }
+
     public function testGetTask()
     {
         $user = $this->createUser('test@example.com', 'password');
