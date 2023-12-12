@@ -45,11 +45,12 @@ class TaskApi
     #[ApiProperty(readable: false, writable: false, identifier: true)]
     public ?int $id = null;
 
+    #[ApiFilter(NumericFilter::class, strategy: 'exact')]
     #[Assert\NotBlank]
     #[Assert\Range(min: 1, max: 5)]
-    #[ApiFilter(NumericFilter::class, strategy: 'exact')]
     public ?int $priority = null;
 
+    #[ApiFilter(SearchFilter::class, strategy: 'ipartial')]
     #[Assert\NotBlank]
     public ?string $title = null;
 
