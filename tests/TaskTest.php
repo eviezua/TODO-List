@@ -13,9 +13,6 @@ class TaskTest extends ApiTestCase
 {
     use ResetDatabase;
 
-    /**
-     * @group my
-     */
     public function testCreateTask()
     {
         $user = $this->createUser('test@example.com', 'password');

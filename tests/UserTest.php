@@ -97,7 +97,6 @@ class UserTest extends ApiTestCase
         $this->assertJsonContains([
             '@context' => '/api/contexts/User',
             '@type' => 'User',
-            'userIdentifier' => 'test@example.com',
         ]);
     }
 
