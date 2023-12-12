@@ -2,7 +2,7 @@
 
 namespace App\Security\Voter;
 
-use App\Entity\Task;
+use App\ApiResource\TaskApi;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
@@ -20,7 +20,7 @@ class TaskVoter extends Voter
     protected function supports(string $attribute, mixed $subject): bool
     {
         return in_array($attribute, [self::EDIT, self::DELETE])
-            && $subject instanceof Task;
+            && $subject instanceof TaskApi;
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
@@ -31,6 +31,8 @@ class TaskVoter extends Voter
             return false;
         }
 
+        assert($subject instanceof TaskApi);
+
         switch ($attribute) {
             case self::EDIT:
             case self::DELETE:
@@ -38,7 +40,7 @@ class TaskVoter extends Voter
                     return false;
                 }
 
-                if ($subject->getOwner() === $user) {
+                if ($subject->owner->id === $user->getId()) {
                     return true;
                 }
                 break;
