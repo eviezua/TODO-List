@@ -54,6 +54,7 @@ class TaskApi
     #[Assert\NotBlank]
     public ?string $title = null;
 
+    #[ApiFilter(SearchFilter::class, strategy: 'ipartial')]
     public ?string $description = null;
 
     #[ApiFilter(SearchFilter::class, strategy: 'exact')]

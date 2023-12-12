@@ -267,6 +267,38 @@ class TaskTest extends ApiTestCase
         ]);
     }
 
+    public function testGetCollectionFilterByDescription()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        TaskFactory::createMany(1, ['owner' => $user, 'description' => 'another description']);
+
+        TaskFactory::createMany(1, ['owner' => $user, 'description' => 'test task']);
+        TaskFactory::createMany(1, ['owner' => $user, 'description' => 'foobar test task']);
+        TaskFactory::createMany(1, ['owner' => $user, 'description' => 'task test']);
+
+        TaskFactory::createMany(1, ['owner' => $user, 'description' => 'foobar TEST task']);
+
+        TaskFactory::createMany(1, ['owner' => $user, 'description' => 'foobarTest']);
+        TaskFactory::createMany(1, ['owner' => $user, 'description' => 'foobarTestTask']);
+        TaskFactory::createMany(1, ['owner' => $user, 'description' => 'TestTask']);
+
+        $token = $this->getToken('test@example.com', 'password');
+
+        static::createClient()->request('GET', '/api/tasks?description=test', ['auth_bearer' => $token]);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertJsonContains([
+            '@context' => '/api/contexts/Task',
+            '@id' => '/api/tasks',
+            '@type' => 'hydra:Collection',
+            'hydra:totalItems' => 7,
+            'hydra:view' => [
+                '@id' => '/api/tasks?description=test',
+                '@type' => 'hydra:PartialCollectionView',
+            ],
+        ]);
+    }
+
     public function testGetTask()
     {
         $user = $this->createUser('test@example.com', 'password');
