@@ -2,7 +2,9 @@
 
 namespace App\ApiResource;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Doctrine\Orm\State\Options;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
@@ -51,6 +53,7 @@ class TaskApi
 
     public ?string $description = null;
 
+    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     #[Assert\Valid]
     public ?Status $status = null;
 

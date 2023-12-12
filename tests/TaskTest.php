@@ -188,6 +188,31 @@ class TaskTest extends ApiTestCase
         ]);
     }
 
+    public function testGetCollectionFilterByStatus()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        TaskFactory::createMany(100, ['owner' => $user, 'status' => Status::ToDo]);
+        TaskFactory::createMany(10, ['owner' => $user, 'status' => Status::Done]);
+        $token = $this->getToken('test@example.com', 'password');
+
+        static::createClient()->request('GET', '/api/tasks?status=ToDo', ['auth_bearer' => $token]);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertJsonContains([
+            '@context' => '/api/contexts/Task',
+            '@id' => '/api/tasks',
+            '@type' => 'hydra:Collection',
+            'hydra:totalItems' => 100,
+            'hydra:view' => [
+                '@id' => '/api/tasks?status=ToDo&page=1',
+                '@type' => 'hydra:PartialCollectionView',
+                'hydra:first' => '/api/tasks?status=ToDo&page=1',
+                'hydra:last' => '/api/tasks?status=ToDo&page=4',
+                'hydra:next' => '/api/tasks?status=ToDo&page=2',
+            ],
+        ]);
+    }
+
     public function testGetTask()
     {
         $user = $this->createUser('test@example.com', 'password');
