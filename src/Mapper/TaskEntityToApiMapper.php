@@ -45,6 +45,12 @@ class TaskEntityToApiMapper implements MapperInterface
             MicroMapperInterface::MAX_DEPTH => 0,
         ]);
 
+        if ($entity->getParent()) {
+            $dto->parent = $this->microMapper->map($entity->getParent(), TaskApi::class, [
+                MicroMapperInterface::MAX_DEPTH => 0,
+            ]);
+        }
+
         return $dto;
     }
 }

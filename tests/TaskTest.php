@@ -136,6 +136,38 @@ class TaskTest extends ApiTestCase
         );
     }
 
+    public function testCreateTaskWithSubTask()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        $userId = $user->getId();
+        $task = TaskFactory::createOne(['owner' => $user]);
+        $taskId = $task->getId();
+        $token = $this->getToken('test@example.com', 'password');
+
+        static::createClient()->request('POST', '/api/tasks', [
+            'auth_bearer' => $token,
+            'json' => [
+                "owner" => "/api/users/{$userId}",
+                'parent' => "/api/tasks/{$taskId}",
+                'status' => Status::ToDo,
+                'priority' => 1,
+                'title' => 'Test Task',
+                'description' => 'test',
+            ],
+            'headers' => [
+                'Content-Type' => 'application/ld+json',
+            ]
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertInstanceOf(
+            Task::class,
+            static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+                ['parent' => $taskId]
+            )
+        );
+    }
+
     public function testGetCollection()
     {
         $user = $this->createUser('test@example.com', 'password');

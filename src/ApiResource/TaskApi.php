@@ -65,6 +65,8 @@ class TaskApi
 
     public ?UserApi $owner = null;
 
+    public ?TaskApi $parent = null;
+
     #[ApiProperty(readable: true, writable: false)]
     #[ApiFilter(OrderFilter::class)]
     public ?\DateTimeImmutable $createdAt = null;

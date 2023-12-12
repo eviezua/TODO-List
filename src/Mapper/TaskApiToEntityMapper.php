@@ -51,6 +51,12 @@ class TaskApiToEntityMapper implements MapperInterface
             $entity->setOwner($this->security->getUser());
         }
 
+        if ($dto->parent) {
+            $entity->setParent($this->microMapper->map($dto->parent, Task::class, [
+                MicroMapperInterface::MAX_DEPTH => 0,
+            ]));
+        }
+
         $entity->setPriority($dto->priority);
         $entity->setTitle($dto->title);
         $entity->setDescription($dto->description);
