@@ -160,6 +160,34 @@ class TaskTest extends ApiTestCase
         ]);
     }
 
+    public function testGetCollectionReturnOwnerTasks()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        TaskFactory::createMany(100, ['owner' => $user]);
+
+        $anotherUser = $this->createUser('another@example.com', 'password');
+        TaskFactory::createMany(10, ['owner' => $anotherUser]);
+
+        $token = $this->getToken('test@example.com', 'password');
+
+        static::createClient()->request('GET', '/api/tasks', ['auth_bearer' => $token]);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertJsonContains([
+            '@context' => '/api/contexts/Task',
+            '@id' => '/api/tasks',
+            '@type' => 'hydra:Collection',
+            'hydra:totalItems' => 100,
+            'hydra:view' => [
+                '@id' => '/api/tasks?page=1',
+                '@type' => 'hydra:PartialCollectionView',
+                'hydra:first' => '/api/tasks?page=1',
+                'hydra:last' => '/api/tasks?page=4',
+                'hydra:next' => '/api/tasks?page=2',
+            ],
+        ]);
+    }
+
     public function testGetTask()
     {
         $user = $this->createUser('test@example.com', 'password');
