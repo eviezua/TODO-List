@@ -48,6 +48,40 @@ class TaskCanCompleteStateProcessor implements ProcessorInterface
 
         $this->entityManager->persist($entity);
 
-        $this->updateParent($canDelete, $canComplete, $entity->getParent());
+        $this->updateParent(
+            $canDelete && $this->findCanDelete($entity->getParent()),
+            $this->findCanComplete($entity->getParent()),
+            $entity->getParent()
+        );
+    }
+
+    protected function findCanComplete(?Task $entity): bool
+    {
+        if (!$entity) {
+            return true;
+        }
+
+        foreach ($entity->getChildren() as $child) {
+            if (Status::Done !== $child->getStatus()) {
+                return false;
+            }
+        }
+
+        return $this->findCanComplete($entity->getParent());
+    }
+
+    protected function findCanDelete(?Task $entity): bool
+    {
+        if (!$entity) {
+            return true;
+        }
+
+        foreach ($entity->getChildren() as $child) {
+            if (Status::Done === $child->getStatus()) {
+                return false;
+            }
+        }
+
+        return $this->findCanDelete($entity->getParent());
     }
 }
