@@ -526,7 +526,9 @@ class TaskTest extends ApiTestCase
         $taskId = $task->getId();
         $token = $this->getToken('test@example.com', 'password');
 
-        static::createClient()->request('DELETE', "/api/tasks/$taskId", ['auth_bearer' => $token]);
+        static::createClient()->request('DELETE', "/api/tasks/$taskId", [
+            'auth_bearer' => $token
+        ]);
 
         $this->assertResponseStatusCodeSame(403);
 
@@ -534,6 +536,58 @@ class TaskTest extends ApiTestCase
             Task::class,
             static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
                 ['id' => $taskId]
+            )
+        );
+    }
+
+    public function testDeleteTaskWithSubTasks()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        $task = TaskFactory::createOne(['owner' => $user, 'status' => Status::ToDo]);
+        $subtask = TaskFactory::createOne(['owner' => $user, 'status' => Status::ToDo, 'parent' => $task]);
+
+        $taskId = $task->getId();
+
+        $token = $this->getToken('test@example.com', 'password');
+
+        static::createClient()->request('DELETE', "/api/tasks/$taskId", ['auth_bearer' => $token]);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertNull(
+            static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+                ['id' => $task->getId()]
+            )
+        );
+        $this->assertNull(
+            static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+                ['id' => $subtask->getId()]
+            )
+        );
+    }
+
+    public function testDeleteSubTaskKeepParentTask()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        $task = TaskFactory::createOne(['owner' => $user, 'status' => Status::ToDo]);
+        $subtask = TaskFactory::createOne(['owner' => $user, 'status' => Status::ToDo, 'parent' => $task]);
+
+        $taskId = $subtask->getId();
+
+        $token = $this->getToken('test@example.com', 'password');
+
+        static::createClient()->request('DELETE', "/api/tasks/$taskId", ['auth_bearer' => $token]);
+
+        $this->assertResponseIsSuccessful();
+
+        $this->assertInstanceOf(
+            Task::class,
+            static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+                ['id' => $task->getId()]
+            )
+        );
+        $this->assertNull(
+            static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+                ['id' => $subtask->getId()]
             )
         );
     }
