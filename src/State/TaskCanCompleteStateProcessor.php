@@ -6,7 +6,6 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Status;
 use App\Entity\Task;
-use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsDecorator;
 
@@ -14,7 +13,6 @@ use Symfony\Component\DependencyInjection\Attribute\AsDecorator;
 class TaskCanCompleteStateProcessor implements ProcessorInterface
 {
     public function __construct(
-        private TaskRepository $taskRepository,
         private EntityManagerInterface $entityManager,
         private ProcessorInterface $innerProcessor,
     ) {
@@ -24,24 +22,32 @@ class TaskCanCompleteStateProcessor implements ProcessorInterface
     {
         if (
             $data instanceof Task &&
-            Status::Done !== $context['request']->attributes->get('previous_data') &&
-            Status::Done === $data->getStatus()
+            $data->getStatus() !== $context['request']->attributes->get('previous_data')
         ) {
-            $this->updateParent($data);
+            $data->setCanDelete($data->getStatus() !== Status::Done);
+            $data->setCanComplete($data->getStatus() === Status::Done);
+
+            $this->updateParent(
+                $data->getStatus() !== Status::Done,
+                $data->getStatus() === Status::Done,
+                $data->getParent()
+            );
         }
 
         $this->innerProcessor->process($data, $operation, $uriVariables, $context);
     }
 
-    protected function updateParent(Task $entity = null): void
+    protected function updateParent(bool $canDelete, bool $canComplete, Task $entity = null): void
     {
-        $entity->setCanDelete(false);
-        $entity->setCanComplete(true);
+        if (!$entity) {
+            return;
+        }
+
+        $entity->setCanDelete($canDelete);
+        $entity->setCanComplete($canComplete);
 
         $this->entityManager->persist($entity);
 
-        if ($entity->getParent()) {
-            $this->updateParent($entity->getParent());
-        }
+        $this->updateParent($canDelete, $canComplete, $entity->getParent());
     }
 }

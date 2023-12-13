@@ -767,6 +767,43 @@ class TaskTest extends ApiTestCase
         $this->assertTrue($actualTask->isCanComplete());
     }
 
+    public function testUncompletedSubTaskShouldUpdateCanCompleteForParentTasks()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        $task = TaskFactory::createOne(['owner' => $user, 'status' => Status::ToDo, 'canComplete' => true]);
+        $subtask = TaskFactory::createOne(
+            ['owner' => $user, 'status' => Status::Done, 'parent' => $task, 'canComplete' => true]
+        );
+
+        $taskId = $subtask->getId();
+        $token = $this->getToken('test@example.com', 'password');
+
+        static::createClient()->request('PATCH', "/api/tasks/$taskId", [
+            'auth_bearer' => $token,
+            'json' => [
+                'status' => Status::ToDo
+            ],
+            'headers' => [
+                'Content-Type' => 'application/merge-patch+json',
+            ]
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
+
+        $actualSubtask = static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+            ['id' => $subtask->getId()]
+        );
+
+        $this->assertEquals(Status::ToDo, $actualSubtask->getStatus());
+
+        $actualTask = static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+            ['id' => $task->getId()]
+        );
+
+        $this->assertFalse($actualTask->isCanComplete());
+    }
+
     public function testCompleteSubTaskShouldUpdateCanDeleteForParentTasks()
     {
         $user = $this->createUser('test@example.com', 'password');
@@ -802,6 +839,43 @@ class TaskTest extends ApiTestCase
         );
 
         $this->assertFalse($actualTask->isCanDelete());
+    }
+
+    public function testUncompletedSubTaskShouldUpdateCanDeleteForParentTasks()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        $task = TaskFactory::createOne(['owner' => $user, 'status' => Status::ToDo, 'canDelete' => false]);
+        $subtask = TaskFactory::createOne(
+            ['owner' => $user, 'status' => Status::Done, 'parent' => $task, 'canComplete' => true]
+        );
+
+        $taskId = $subtask->getId();
+        $token = $this->getToken('test@example.com', 'password');
+
+        static::createClient()->request('PATCH', "/api/tasks/$taskId", [
+            'auth_bearer' => $token,
+            'json' => [
+                'status' => Status::ToDo
+            ],
+            'headers' => [
+                'Content-Type' => 'application/merge-patch+json',
+            ]
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
+
+        $actualSubtask = static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+            ['id' => $subtask->getId()]
+        );
+
+        $this->assertEquals(Status::ToDo, $actualSubtask->getStatus());
+
+        $actualTask = static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+            ['id' => $task->getId()]
+        );
+
+        $this->assertTrue($actualTask->isCanDelete());
     }
 
     /**
