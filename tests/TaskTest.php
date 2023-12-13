@@ -619,6 +619,35 @@ class TaskTest extends ApiTestCase
         );
     }
 
+    public function testCompleteTaskWithUncompletedSubTaskForbidden()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        $task = TaskFactory::createOne(['owner' => $user, 'status' => Status::ToDo, 'canComplete' => false]);
+        $subtask = TaskFactory::createOne(['owner' => $user, 'status' => Status::ToDo, 'parent' => $task]);
+
+        $taskId = $task->getId();
+
+        $token = $this->getToken('test@example.com', 'password');
+
+        static::createClient()->request('PATCH', "/api/tasks/$taskId", [
+            'auth_bearer' => $token,
+            'json' => [
+                'status' => Status::Done
+            ],
+            'headers' => [
+                'Content-Type' => 'application/merge-patch+json',
+            ]
+        ]);
+
+        $this->assertResponseStatusCodeSame(403);
+
+        $actualTask = static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+            ['id' => $taskId]
+        );
+
+        $this->assertEquals(Status::ToDo, $actualTask->getStatus());
+    }
+
     public function testUpdateTask()
     {
         $user = $this->createUser('test@example.com', 'password');

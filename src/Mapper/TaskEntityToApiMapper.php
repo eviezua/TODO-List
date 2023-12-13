@@ -51,6 +51,7 @@ class TaskEntityToApiMapper implements MapperInterface
             ]);
         }
         $dto->canDelete = $entity->isCanDelete();
+        $dto->canComplete = $entity->isCanComplete();
 
         return $dto;
     }

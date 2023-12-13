@@ -30,6 +30,7 @@ class TaskFixtures extends Fixture implements DependentFixtureInterface
         $task->setCompletedAt(new \DateTimeImmutable());
         $task->setCompletedAt(new \DateTimeImmutable());
         $task->setCanDelete(true);
+        $task->setCanComplete(false);
 
         $manager->persist($task);
         $manager->flush();
@@ -41,6 +42,7 @@ class TaskFixtures extends Fixture implements DependentFixtureInterface
         $task1->setTitle('My Second Task');
         $task1->setCompletedAt(new \DateTimeImmutable());
         $task1->setCanDelete(true);
+        $task->setCanComplete(true);
 
         $manager->persist($task1);
         $manager->flush();

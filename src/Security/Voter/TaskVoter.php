@@ -40,6 +40,10 @@ class TaskVoter extends Voter
                     return false;
                 }
 
+                if (false === $subject->canComplete) {
+                    return false;
+                }
+
                 if ($user->getId() === $subject->owner->id) {
                     return true;
                 }

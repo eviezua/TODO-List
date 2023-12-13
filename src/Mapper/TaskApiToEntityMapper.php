@@ -62,6 +62,7 @@ class TaskApiToEntityMapper implements MapperInterface
         $entity->setDescription($dto->description);
         $entity->setStatus($dto->status);
         $entity->setCanDelete($dto->canDelete);
+        $entity->setCanComplete($dto->canComplete);
 
         return $entity;
     }

@@ -54,6 +54,9 @@ class Task
     #[ORM\Column(type: Types::BOOLEAN)]
     private bool $canDelete = true;
 
+    #[ORM\Column(type: Types::BOOLEAN)]
+    private bool $canComplete = true;
+
     public function __construct(?DateTimeImmutable $createdAt = null)
     {
         if ($createdAt instanceof DateTimeImmutable) {
@@ -196,5 +199,15 @@ class Task
     public function setCanDelete(bool $canDelete): void
     {
         $this->canDelete = $canDelete;
+    }
+
+    public function isCanComplete(): bool
+    {
+        return $this->canComplete;
+    }
+
+    public function setCanComplete(bool $canComplete): void
+    {
+        $this->canComplete = $canComplete;
     }
 }
