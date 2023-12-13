@@ -54,6 +54,10 @@ class TaskVoter extends Voter
                     return false;
                 }
 
+                if (false === $subject->canDelete) {
+                    return false;
+                }
+
                 if ($user->getId() === $subject->owner->id) {
                     return true;
                 }

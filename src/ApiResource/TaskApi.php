@@ -74,4 +74,6 @@ class TaskApi
     #[ApiProperty(readable: true, writable: false)]
     #[ApiFilter(OrderFilter::class)]
     public ?\DateTimeImmutable $completedAt = null;
+    #[ApiProperty(readable: true, writable: false)]
+    public bool $canDelete = true;
 }

@@ -50,6 +50,7 @@ class TaskEntityToApiMapper implements MapperInterface
                 MicroMapperInterface::MAX_DEPTH => 0,
             ]);
         }
+        $dto->canDelete = $entity->isCanDelete();
 
         return $dto;
     }

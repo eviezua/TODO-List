@@ -51,6 +51,9 @@ class Task
     #[ORM\OneToMany(mappedBy: 'parent', targetEntity: self::class)]
     private Collection $children;
 
+    #[ORM\Column(type: Types::BOOLEAN)]
+    private bool $canDelete = true;
+
     public function __construct(?DateTimeImmutable $createdAt = null)
     {
         if ($createdAt instanceof DateTimeImmutable) {
@@ -183,5 +186,15 @@ class Task
         }
 
         return $this;
+    }
+
+    public function isCanDelete(): bool
+    {
+        return $this->canDelete;
+    }
+
+    public function setCanDelete(bool $canDelete): void
+    {
+        $this->canDelete = $canDelete;
     }
 }

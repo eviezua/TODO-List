@@ -24,11 +24,12 @@ class TaskFixtures extends Fixture implements DependentFixtureInterface
         $user1 = $this->entityManager->getRepository(User::class)->findOneBy(['email' => 'user1@example.com']);;
         $task = new Task(new \DateTimeImmutable());
         $task->setOwner($user1);
-        $task->setStatus(Status::ToDo);
+        $task->setStatus(Status::Done);
         $task->setPriority(2);
         $task->setTitle('My First Task');
         $task->setCompletedAt(new \DateTimeImmutable());
         $task->setCompletedAt(new \DateTimeImmutable());
+        $task->setCanDelete(true);
 
         $manager->persist($task);
         $manager->flush();
@@ -39,6 +40,7 @@ class TaskFixtures extends Fixture implements DependentFixtureInterface
         $task1->setPriority(1);
         $task1->setTitle('My Second Task');
         $task1->setCompletedAt(new \DateTimeImmutable());
+        $task1->setCanDelete(true);
 
         $manager->persist($task1);
         $manager->flush();

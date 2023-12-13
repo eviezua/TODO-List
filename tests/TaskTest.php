@@ -592,6 +592,33 @@ class TaskTest extends ApiTestCase
         );
     }
 
+    public function testDeleteTaskWithCompletedSubTaskForbidden()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        $task = TaskFactory::createOne(['owner' => $user, 'status' => Status::ToDo, 'canDelete' => false]);
+        $subtask = TaskFactory::createOne(['owner' => $user, 'status' => Status::Done, 'parent' => $task]);
+
+        $taskId = $task->getId();
+
+        $token = $this->getToken('test@example.com', 'password');
+
+        static::createClient()->request('DELETE', "/api/tasks/$taskId", ['auth_bearer' => $token]);
+
+        $this->assertResponseStatusCodeSame(403);
+        $this->assertInstanceOf(
+            Task::class,
+            static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+                ['id' => $task->getId()]
+            )
+        );
+        $this->assertInstanceOf(
+            Task::class,
+            static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+                ['id' => $subtask->getId()]
+            )
+        );
+    }
+
     public function testUpdateTask()
     {
         $user = $this->createUser('test@example.com', 'password');
