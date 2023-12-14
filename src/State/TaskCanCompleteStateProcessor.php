@@ -25,7 +25,6 @@ class TaskCanCompleteStateProcessor implements ProcessorInterface
             $data->getStatus() !== $context['request']->attributes->get('previous_data')
         ) {
             $data->setCanDelete($data->getStatus() !== Status::Done);
-            $data->setCanComplete($data->getStatus() === Status::Done);
 
             $this->updateParent(
                 $data->getStatus() !== Status::Done,

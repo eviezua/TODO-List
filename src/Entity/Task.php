@@ -81,6 +81,9 @@ class Task
     {
         $this->status = $status;
 
+        $this->setCanDelete(Status::Done !== $status);
+        $this->setCanComplete(true);
+        
         return $this;
     }
 

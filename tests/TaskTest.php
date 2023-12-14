@@ -913,6 +913,95 @@ class TaskTest extends ApiTestCase
         $this->assertFalse($actualTask->isCanDelete());
     }
 
+    public function testCompletedSubTask()
+    {
+        $user = $this->createUser('test@example.com', 'password');
+        $userId = $user->getId();
+        $token = $this->getToken('test@example.com', 'password');
+        static::createClient()->request('POST', '/api/tasks', [
+            'auth_bearer' => $token,
+            'json' => [
+                "owner" => "/api/users/{$userId}",
+                'status' => Status::ToDo,
+                'priority' => 1,
+                'title' => 'Test Task',
+                'description' => 'test',
+            ],
+            'headers' => [
+                'Content-Type' => 'application/ld+json',
+            ]
+        ]);
+
+        $this->assertResponseIsSuccessful();
+
+        $this->assertTrue(
+            static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+                ['title' => 'Test Task']
+            )->isCanComplete()
+        );
+        $taskId = static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+            ['title' => 'Test Task']
+        )->getId();
+        static::createClient()->request('POST', '/api/tasks', [
+            'auth_bearer' => $token,
+            'json' => [
+                "owner" => "/api/users/{$userId}",
+                'parent' => "/api/tasks/{$taskId}",
+                'status' => Status::ToDo,
+                'priority' => 1,
+                'title' => 'Child 1 Of Task',
+                'description' => 'test',
+            ],
+            'headers' => [
+                'Content-Type' => 'application/ld+json',
+            ]
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertTrue(
+            static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+                ['title' => 'Child 1 Of Task']
+            )->isCanComplete()
+        );
+
+        static::createClient()->request('POST', '/api/tasks', [
+            'auth_bearer' => $token,
+            'json' => [
+                "owner" => "/api/users/{$userId}",
+                'parent' => "/api/tasks/{$taskId}",
+                'status' => Status::ToDo,
+                'priority' => 1,
+                'title' => 'Child 2 Of Task',
+                'description' => 'test',
+            ],
+            'headers' => [
+                'Content-Type' => 'application/ld+json',
+            ]
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertTrue(
+            static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+                ['title' => 'Child 2 Of Task']
+            )->isCanComplete()
+        );
+
+        $subtaskId = static::getContainer()->get('doctrine')->getRepository(Task::class)->findOneBy(
+            ['title' => 'Child 2 Of Task']
+        )->getId();
+        static::createClient()->request('PATCH', "/api/tasks/$subtaskId", [
+            'auth_bearer' => $token,
+            'json' => [
+                'status' => Status::Done
+            ],
+            'headers' => [
+                'Content-Type' => 'application/merge-patch+json',
+            ]
+        ]);
+
+        $this->assertResponseIsSuccessful();
+    }
+
     public function testUncompletedSubTaskShouldUpdateCanDeleteForParentTasks()
     {
         $user = $this->createUser('test@example.com', 'password');
